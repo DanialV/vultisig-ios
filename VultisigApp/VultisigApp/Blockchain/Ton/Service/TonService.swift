@@ -116,6 +116,10 @@ class TonService {
         return String.zero
     }
 
+    /// Fetches jetton token metadata (name, symbol, decimals) from the Toncenter v3 `/jetton/masters` endpoint.
+    /// - Parameter contractAddress: The jetton master contract address to look up.
+    /// - Returns: A tuple of the token's display name, ticker symbol, and decimal precision.
+    /// - Throws: `URLError` when the address is invalid, the server returns an error, or no master entry is found.
     func getTokenInfo(contractAddress: String) async throws -> (name: String, symbol: String, decimals: Int) {
         guard let url = URL(string: Endpoint.fetchTonJettonMasterInfo(jettonAddress: contractAddress)) else {
             throw URLError(.badURL)
