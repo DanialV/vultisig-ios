@@ -224,6 +224,10 @@ class Endpoint {
         "https://api.vultisig.com/ruji/api/graphql"
     }
 
+    static func fetchMayaChainPoolInfo(asset: String) -> String {
+        "https://mayanode.mayachain.info/mayachain/pool/\(encodePathComponent(asset))"
+    }
+
     static let depositAssetsMaya = "https://mayanode.mayachain.info/mayachain/pools"
 
     /// THORChain LP endpoints
@@ -541,7 +545,7 @@ class Endpoint {
         "\(vultisigApiProxy)/bitcoin/".asUrl
     }
 
-    static func dashBroadcast() -> URL {
+    static func dashRpc() -> URL {
         "\(vultisigApiProxy)/dash/".asUrl
     }
 

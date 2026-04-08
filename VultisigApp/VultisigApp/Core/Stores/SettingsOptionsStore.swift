@@ -15,6 +15,7 @@ enum SettingsLanguage: String, CaseIterable {
     case Hrvatski
     case Portuguese
     case Chinese
+    case Korean
 
     func description() -> String {
         switch self {
@@ -32,6 +33,8 @@ enum SettingsLanguage: String, CaseIterable {
             return NSLocalizedString("Portuguese", comment: "Portuguese")
         case .Chinese:
             return NSLocalizedString("Chinese", comment: "Chinese")
+        case .Korean:
+            return NSLocalizedString("Korean", comment: "Korean")
         }
     }
 
@@ -51,6 +54,8 @@ enum SettingsLanguage: String, CaseIterable {
             return "pt"
         case .Chinese:
             return "zh-Hans"
+        case .Korean:
+            return "ko"
         }
     }
 
@@ -139,7 +144,7 @@ enum SettingsAPRPeriod: String, CaseIterable {
                let period = SettingsAPRPeriod(rawValue: periodString) {
                 return period
             } else {
-                return .oneMonth  // Default to 30d (industry standard)
+                return .oneMonth // Default to 30d (industry standard)
             }
         }
         set {
@@ -149,7 +154,7 @@ enum SettingsAPRPeriod: String, CaseIterable {
 }
 
 class SettingsOptionsStore {
-    static let FAQData: [(question: String, answer: String)] = Range(1...9).map {
+    static let FAQData: [(question: String, answer: String)] = Range(1 ... 9).map {
         (question: "faqQuestion\($0)", answer: "faqAnswer\($0)")
     }
 }
