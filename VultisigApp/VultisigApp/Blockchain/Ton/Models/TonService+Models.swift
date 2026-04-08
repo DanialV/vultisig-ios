@@ -187,3 +187,45 @@ struct FlexibleValue: Codable {
 }
 
 private struct EmptyCodable: Codable {}
+
+// MARK: - Jetton Master Info (Toncenter v3 /jetton/masters)
+
+struct JettonMastersResponse: Codable {
+    let jetton_masters: [JettonMasterEntry]
+    let metadata: [String: JettonMasterMetadata]?
+}
+
+struct JettonMasterEntry: Codable {
+    let address: String
+    let total_supply: String?
+    let mintable: Bool?
+    let jetton_content: JettonContent?
+}
+
+struct JettonContent: Codable {
+    let decimals: String?
+    let uri: String?
+    let name: String?
+    let symbol: String?
+    let image: String?
+}
+
+struct JettonMasterMetadata: Codable {
+    let is_indexed: Bool?
+    let token_info: [JettonTokenInfo]?
+}
+
+struct JettonTokenInfo: Codable {
+    let valid: Bool?
+    let type: String?
+    let name: String?
+    let symbol: String?
+    let description: String?
+    let image: String?
+    let extra: JettonTokenInfoExtra?
+}
+
+struct JettonTokenInfoExtra: Codable {
+    let decimals: String?
+    let uri: String?
+}

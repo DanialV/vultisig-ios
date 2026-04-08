@@ -116,6 +116,51 @@ class TonService {
         return String.zero
     }
 
+    func getTokenInfo(contractAddress: String) async throws -> (name: String, symbol: String, decimals: Int) {
+        guard let url = URL(string: Endpoint.fetchTonJettonMasterInfo(jettonAddress: contractAddress)) else {
+            throw URLError(.badURL)
+        }
+
+        let request = URLRequest(url: url)
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            throw URLError(.badServerResponse)
+        }
+
+        let mastersResponse = try JSONDecoder().decode(JettonMastersResponse.self, from: data)
+
+        guard let master = mastersResponse.jetton_masters.first else {
+            throw URLError(.resourceUnavailable)
+        }
+
+        // Try rich metadata first (contains name & symbol reliably)
+        var name = ""
+        var symbol = ""
+        var decimals = 0
+
+        if let metadata = mastersResponse.metadata,
+           let masterMetadata = metadata[master.address],
+           let tokenInfo = masterMetadata.token_info?.first(where: { $0.valid == true }) {
+            name = tokenInfo.name ?? ""
+            symbol = tokenInfo.symbol ?? ""
+            if let extraDecimals = tokenInfo.extra?.decimals {
+                decimals = Int(extraDecimals) ?? 0
+            }
+        }
+
+        // Fall back to jetton_content fields
+        if let content = master.jetton_content {
+            if name.isEmpty { name = content.name ?? "" }
+            if symbol.isEmpty { symbol = content.symbol ?? "" }
+            if decimals == 0, let contentDecimals = content.decimals {
+                decimals = Int(contentDecimals) ?? 0
+            }
+        }
+
+        return (name, symbol, decimals)
+    }
+
     func getSpecificTransactionInfo(_ coin: Coin) async throws -> (UInt64, UInt64) {
 
         let now = Date()
