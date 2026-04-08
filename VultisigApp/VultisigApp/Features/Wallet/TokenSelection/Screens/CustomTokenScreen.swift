@@ -92,6 +92,9 @@ struct CustomTokenScreen: View {
         .withLoading(text: "addingToken".localized, isLoading: $isAddingToken)
     }
 
+    /// Builds a banner view displaying the given error with an optional retry button.
+    /// - Parameter error: The error to present. Rate-limit errors hide the retry action.
+    /// - Returns: An ``ActionBannerView`` configured for the error.
     func errorView(error: Error) -> some View {
         ActionBannerView(
             title: error.localizedDescription,
@@ -103,6 +106,7 @@ struct CustomTokenScreen: View {
         }
     }
 
+    /// A card view showing the resolved custom token's icon, ticker, chain badge, and contract address.
     var tokenInfoView: some View {
         ZStack(alignment: .top) {
             HStack(spacing: 12) {
@@ -141,6 +145,9 @@ struct CustomTokenScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
+    /// Looks up token metadata for the current ``contractAddress`` by dispatching to the appropriate
+    /// chain-specific service (EVM, Solana, Tron, or TON). On success, populates the token preview;
+    /// on failure, sets the ``error`` state.
     private func fetchTokenInfo() async {
         guard !contractAddress.isEmpty else { return }
 
@@ -296,10 +303,15 @@ struct CustomTokenScreen: View {
         }
     }
 
+    /// Validates whether the given address string is a well-formed address for the current chain.
+    /// Updates ``isValidAddress`` accordingly.
+    /// - Parameter address: The raw address string entered by the user.
     private func validateAddress(_ address: String) {
         isValidAddress = AddressService.validateAddress(address: address, group: group)
     }
 
+    /// Persists the resolved custom token to the vault and dismisses the screen.
+    /// Shows an "adding token" loading indicator while the save is in progress.
     private func saveAssets() {
         if let customToken = self.token {
             isAddingToken = true
