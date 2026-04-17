@@ -142,9 +142,7 @@ enum TronHelper {
 
             let input = try TronSigningInput.with {
                 $0.transaction = try TronTransaction.with {
-                    // Smart contracts need a minimum feeLimit even if energy covers the cost,
-                    // otherwise the TVM enforces the 1 TRX limit strictly and fails with OUT_OF_ENERGY.
-                    $0.feeLimit = max(Int64(gasEstimation), 150_000_000)
+                    $0.feeLimit = Int64(gasEstimation)
                     $0.transferTrc20Contract = contract
                     $0.timestamp = Int64(timestamp)
                     $0.blockHeader = try buildBlockHeader(
@@ -256,8 +254,7 @@ enum TronHelper {
         let input = try TronSigningInput.with {
             $0.transaction = try TronTransaction.with {
                 $0.contractOneof = .triggerSmartContract(contract)
-                // Swaps and complex dApp interactions need higher safe fee limits
-                $0.feeLimit = max(Int64(gasEstimation), 400_000_000)
+                $0.feeLimit = Int64(gasEstimation)
                 $0.timestamp = Int64(timestamp)
                 $0.expiration = Int64(expiration)
                 $0.blockHeader = try buildBlockHeader(
@@ -289,7 +286,7 @@ enum TronHelper {
         let input = try TronSigningInput.with {
             $0.transaction = try TronTransaction.with {
                 $0.contractOneof = .transferAsset(contract)
-                $0.feeLimit = max(Int64(gasEstimation), 150_000_000)
+                $0.feeLimit = Int64(gasEstimation)
                 $0.timestamp = Int64(timestamp)
                 $0.expiration = Int64(expiration)
                 $0.blockHeader = try buildBlockHeader(
@@ -329,7 +326,7 @@ enum TronHelper {
                 $0.contractOneof = .freezeBalanceV2(contract)
                 $0.timestamp = Int64(timestamp)
                 $0.expiration = Int64(expiration)
-                $0.feeLimit = max(Int64(gasEstimation), 150_000_000)
+                $0.feeLimit = Int64(gasEstimation)
                 $0.blockHeader = try buildBlockHeader(
                     timestamp: blockHeaderTimestamp, number: blockHeaderNumber,
                     version: blockHeaderVersion, txTrieRoot: blockHeaderTxTrieRoot,
@@ -367,7 +364,7 @@ enum TronHelper {
                 $0.contractOneof = .unfreezeBalanceV2(contract)
                 $0.timestamp = Int64(timestamp)
                 $0.expiration = Int64(expiration)
-                $0.feeLimit = max(Int64(gasEstimation), 150_000_000)
+                $0.feeLimit = Int64(gasEstimation)
                 $0.blockHeader = try buildBlockHeader(
                     timestamp: blockHeaderTimestamp, number: blockHeaderNumber,
                     version: blockHeaderVersion, txTrieRoot: blockHeaderTxTrieRoot,

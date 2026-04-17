@@ -50,7 +50,14 @@ class TronService {
         let calculatedFee = try await calculateTronFee(coin: coin, to: to, memo: memo)
 
         // For swaps, if fee calculation returns 0, use default fee
-        let finalFee = calculatedFee == 0 ? coin.feeDefault.toBigInt() : calculatedFee
+        var finalFee = calculatedFee == 0 ? coin.feeDefault.toBigInt() : calculatedFee
+        
+        // Swaps (triggerSmartContract) often originate as Native TRX with 0 calculated fee limit in this context.
+        // Tron sets upper thresholds to up to 400 TRX for complex operations like cross-chain swaps to prevent OUT_OF_ENERGY.
+        if coin.isNativeToken && calculatedFee == 0 {
+             finalFee = max(finalFee, BigInt(400_000_000))
+        }
+        
         let estimation = String(finalFee)
 
         return BlockChainSpecific.Tron(
@@ -119,10 +126,17 @@ class TronService {
                 let isDestinationActive = try await checkIfAccountIsActive(address: to)
                 let energyRequired = isDestinationActive ? 65000 : 130000
 
+                // Minimum safe limit for TRC20 execution. We use 150 TRX (150_000_000 sun) as the recommended 
+                // lower bound for `feeLimit` in standard Wallets to ensure TVM doesn't fail with OUT_OF_ENERGY 
+                // if slightly more energy is consumed than standard.
+                let minimumSafeFeeLimit = BigInt(150_000_000)
+
                 if availableEnergy >= energyRequired {
-                    transactionFee = BigInt(1_000_000)
+                    // Even if covered by Energy, `feeLimit` serves as the maximum contract execution capacity.
+                    transactionFee = minimumSafeFeeLimit
                 } else {
-                    transactionFee = isDestinationActive ? BigInt(18_000_000) : BigInt(36_000_000)
+                    let requiredFee = isDestinationActive ? BigInt(18_000_000) : BigInt(36_000_000)
+                    transactionFee = max(requiredFee, minimumSafeFeeLimit)
                 }
             }
 
