@@ -162,41 +162,7 @@ struct CustomTokenScreen: View {
         error = nil
 
         do {
-            if ChainType.EVM == group.chain.chainType {
-
-                let service = try EvmService.getService(forChain: group.chain)
-                let (name, symbol, decimals) = try await service.getTokenInfo(contractAddress: contractAddress)
-
-                if !name.isEmpty, !symbol.isEmpty, decimals > 0 {
-                    let nativeTokenOptional = group.coins.first(where: {$0.isNativeToken})
-                    if let nativeToken = nativeTokenOptional {
-                        self.token = CoinMeta(
-                            chain: nativeToken.chain,
-                            ticker: symbol,
-                            logo: .empty,
-                            decimals: decimals,
-                            priceProviderId: .empty,
-                            contractAddress: contractAddress,
-                            isNativeToken: false
-                        )
-                        self.tokenName = name
-                        self.tokenSymbol = symbol
-                        self.tokenDecimals = decimals
-                        self.showTokenInfo = true
-                        self.isLoading = false
-                    } else {
-                        self.error = TokenNotFoundError()
-                        self.isLoading = false
-                    }
-
-                } else {
-
-                    self.error = TokenNotFoundError()
-                    self.isLoading = false
-
-                }
-
-            } else if ChainType.Solana == group.chain.chainType {
+            if ChainType.Solana == group.chain.chainType {
 
                 let jupiterTokenInfos = try await SolanaService.shared.fetchTokensInfos(for: [contractAddress])
 
@@ -216,76 +182,55 @@ struct CustomTokenScreen: View {
 
                 }
 
-            } else if ChainType.Tron == group.chain.chainType {
-
-                let (name, symbol, decimals) = try await TronService.shared.getTokenInfo(contractAddress: contractAddress)
-
-                if !name.isEmpty, !symbol.isEmpty, decimals > 0 {
-                    let nativeTokenOptional = group.coins.first(where: {$0.isNativeToken})
-                    if let nativeToken = nativeTokenOptional {
-                        self.token = CoinMeta(
-                            chain: nativeToken.chain,
-                            ticker: symbol,
-                            logo: .empty,
-                            decimals: decimals,
-                            priceProviderId: .empty,
-                            contractAddress: contractAddress,
-                            isNativeToken: false
-                        )
-                        self.tokenName = name
-                        self.tokenSymbol = symbol
-                        self.tokenDecimals = decimals
-                        self.showTokenInfo = true
-                        self.isLoading = false
-                    } else {
-                        self.error = TokenNotFoundError()
-                        self.isLoading = false
-                    }
-
-                } else {
-
-                    self.error = TokenNotFoundError()
-                    self.isLoading = false
-
-                }
-
-            } else if ChainType.Ton == group.chain.chainType {
-
-                let (name, symbol, decimals) = try await TonService.shared.getTokenInfo(contractAddress: contractAddress)
-
-                if !name.isEmpty, !symbol.isEmpty, decimals > 0 {
-                    let nativeTokenOptional = group.coins.first(where: {$0.isNativeToken})
-                    if let nativeToken = nativeTokenOptional {
-                        self.token = CoinMeta(
-                            chain: nativeToken.chain,
-                            ticker: symbol,
-                            logo: .empty,
-                            decimals: decimals,
-                            priceProviderId: .empty,
-                            contractAddress: contractAddress,
-                            isNativeToken: false
-                        )
-                        self.tokenName = name
-                        self.tokenSymbol = symbol
-                        self.tokenDecimals = decimals
-                        self.showTokenInfo = true
-                        self.isLoading = false
-                    } else {
-                        self.error = TokenNotFoundError()
-                        self.isLoading = false
-                    }
-
-                } else {
-
-                    self.error = TokenNotFoundError()
-                    self.isLoading = false
-
-                }
-
             } else {
 
-                self.error = TokenNotFoundError()
-                self.isLoading = false
+                // EVM, TRON, and TON all share the same (name, symbol, decimals) lookup pattern
+                let tokenInfo: (name: String, symbol: String, decimals: Int)
+
+                switch group.chain.chainType {
+                case .EVM:
+                    let service = try EvmService.getService(forChain: group.chain)
+                    tokenInfo = try await service.getTokenInfo(contractAddress: contractAddress)
+                case .Tron:
+                    tokenInfo = try await TronService.shared.getTokenInfo(contractAddress: contractAddress)
+                case .Ton:
+                    tokenInfo = try await TonService.shared.getTokenInfo(contractAddress: contractAddress)
+                default:
+                    self.error = TokenNotFoundError()
+                    self.isLoading = false
+                    return
+                }
+
+                let (name, symbol, decimals) = tokenInfo
+
+                if !name.isEmpty, !symbol.isEmpty, decimals > 0 {
+                    let nativeTokenOptional = group.coins.first(where: {$0.isNativeToken})
+                    if let nativeToken = nativeTokenOptional {
+                        self.token = CoinMeta(
+                            chain: nativeToken.chain,
+                            ticker: symbol,
+                            logo: .empty,
+                            decimals: decimals,
+                            priceProviderId: .empty,
+                            contractAddress: contractAddress,
+                            isNativeToken: false
+                        )
+                        self.tokenName = name
+                        self.tokenSymbol = symbol
+                        self.tokenDecimals = decimals
+                        self.showTokenInfo = true
+                        self.isLoading = false
+                    } else {
+                        self.error = TokenNotFoundError()
+                        self.isLoading = false
+                    }
+
+                } else {
+
+                    self.error = TokenNotFoundError()
+                    self.isLoading = false
+
+                }
 
             }
 
